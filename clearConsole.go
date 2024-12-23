@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -13,20 +14,23 @@ func init() {
 	clear["linux"] = func() {
 		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
-		cmd.Run()
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to clear screen on linux: %v\n", err)
+		}
 	}
 	clear["windows"] = func() {
 		cmd := exec.Command("cmd", "/c", "cls")
 		cmd.Stdout = os.Stdout
-		cmd.Run()
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to clear screen on windows: %v\n", err)
+		}
 	}
 }
 
 func CallClear() {
-	value, ok := clear[runtime.GOOS]
-	if ok {
-		value()
-	} else { //unsupported platform
+	if clearFunc, ok := clear[runtime.GOOS]; ok {
+		clearFunc()
+	} else {
 		panic("Your platform is unsupported! I can't clear terminal screen :(")
 	}
 }
